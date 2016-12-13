@@ -4,7 +4,7 @@ ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decor
 lnc = log --pretty=format:"%h\\ %s\\ [%cn]"
 ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
 le = log --oneline --decorate
-st = status -s
+st = status
 cl = clone
 ci = commit
 co = checkout
