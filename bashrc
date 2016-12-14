@@ -1,8 +1,9 @@
 # my .bashrc
-uxnotes='~/OneDrive/Dinge/docs/allgemeinUnixLinux.sh'
-bashnotes='~/OneDrive/Dinge/docs/bash.txt'
-pythonnotes='~/OneDrive/Dinge/docs/python.txt'
-ansiblenotes='~/OneDrive/Dinge/docs/ansible.txt'
+docroot='~/Google\ Drive/08_technical/01_myKnowledge'
+uxnotes="$docroot/allgemeinUnixLinux.sh"
+bashnotes="$docroot/bash.txt"
+pythonnotes="$docroot/python.txt"
+ansiblenotes="$docroot/ansible.txt"
 mysshkeys=( \
 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDg9ILc/TTz3YVAj1NXC7baoygrrnj13WmkplX6y9bJqYt7yElUPsYI45nNUthUjFRVOi+CJFWrPLRGFjx6zkmHWKSCP1kMU1wZwg7Ah+86ohS1oY0YCUG+RBHi2rblt/LOrGtdi3nCtNbOIt7l8Y7Y7HOojVmP0zsIpGZej+/WVr/pOgk3t3UD6olSp9TTjymZkukFHFb4xgkR/e4OH0Cs8xA91htfEh/H8aTTKmRoAGBWXw6wn8k5SYYlVRoW23bN2rsl7YWidPzGZjUlv2ySFGHUk7t2t31PNn58FzGAYGYyfNpVbESp2NsDJfDTIV49qt+6TmVZOHF25a0y2KYJ christian.frei@umb.ch' \
 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCul9VC/kHgsmQftHSaua24n57UHsFcIMWCNBUdKH204YKR7U2NZ2kJ+vZVAkHy04kp5stcaF14TAYiO9AGm7iI6ygPAjSvvMahVi55+AxsaTsoiedqYeT7JsHPwcFcC2Fv3K7I83+owTHhUK2oSYe7/5u/shvJ6jQpIOexBjZcLV+DXE6hlU811zhuKrGH/xSfj13v4mUE2+xFWDeg0KZic8UKL8fAXS5EC5E9tGK59QaG4kAa+6cFvpFU9HSXYJh3nq1iRK3UEf9Zpb/QJxmXa8Mv6hReMibHoQ4qN5AtL8OjZaS7SC9DAoRWTOnnygePQpcvpm1I5eFuYJYG5NIUn/PCSmVwkhCUkBu99Uy96GP/voSoQic1JQbqtC5lc1VPSn1iE+vIQrndukV70G8bP7Ceb2lDeaKMDEPtK6/vSXsLbL9OkyIaykbJPRjgYGMDyeDCvIKGPT+rkDfSJRW09zjKJykn1GqzXw8RBjVJsFtjGbjoJ4ccyU9wZDLFEJfoiPKGEQOZa4N7f4TRRfhg7+qTMwgViIDxSyP5ynFxw+6/QRvtgVeL1znSxyoZTdZe+IAMgnO57WMWPGN2VsXquhFHWodj4LsorR1y/vG3piUVpKR1lMyP3B3PfBw0cM8MF3Mddv9YfSkXC7GNm8iFHr4saUaH+R0RBn2QEF/j1w== extcfr@adnmac108.zh.adnovum.ch' )
@@ -24,7 +25,7 @@ export PS1="\[\033[38;5;3m\]\u\[$(tput sgr0)\]\[\033[38;5;0m\]@\[$(tput sgr0)\]\
 # export HTTPS_PROXY=https://$PROXY
 
 # generic aliases
-alias ll='ls -alh --color'
+alias ll='ls -alhG'
 alias via="vim $uxnotes"
 alias vib="vim $bashnotes"
 alias vip="vim $pythonnotes"
