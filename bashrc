@@ -9,9 +9,11 @@ mysshkeys=( \
 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCul9VC/kHgsmQftHSaua24n57UHsFcIMWCNBUdKH204YKR7U2NZ2kJ+vZVAkHy04kp5stcaF14TAYiO9AGm7iI6ygPAjSvvMahVi55+AxsaTsoiedqYeT7JsHPwcFcC2Fv3K7I83+owTHhUK2oSYe7/5u/shvJ6jQpIOexBjZcLV+DXE6hlU811zhuKrGH/xSfj13v4mUE2+xFWDeg0KZic8UKL8fAXS5EC5E9tGK59QaG4kAa+6cFvpFU9HSXYJh3nq1iRK3UEf9Zpb/QJxmXa8Mv6hReMibHoQ4qN5AtL8OjZaS7SC9DAoRWTOnnygePQpcvpm1I5eFuYJYG5NIUn/PCSmVwkhCUkBu99Uy96GP/voSoQic1JQbqtC5lc1VPSn1iE+vIQrndukV70G8bP7Ceb2lDeaKMDEPtK6/vSXsLbL9OkyIaykbJPRjgYGMDyeDCvIKGPT+rkDfSJRW09zjKJykn1GqzXw8RBjVJsFtjGbjoJ4ccyU9wZDLFEJfoiPKGEQOZa4N7f4TRRfhg7+qTMwgViIDxSyP5ynFxw+6/QRvtgVeL1znSxyoZTdZe+IAMgnO57WMWPGN2VsXquhFHWodj4LsorR1y/vG3piUVpKR1lMyP3B3PfBw0cM8MF3Mddv9YfSkXC7GNm8iFHr4saUaH+R0RBn2QEF/j1w== extcfr@adnmac108.zh.adnovum.ch' )
 
 if uname -a | grep Linux >/dev/null; then
-  os="Linux" 
+  os="Linux"
+  flavour="unknown"
 elif uname -a | grep Darwin >/dev/null; then 
   os="OSX"
+  flavour="osx"
 fi
 
 export TERM=xterm-256color
@@ -23,6 +25,15 @@ export PS1="\[\033[38;5;3m\]\u\[$(tput sgr0)\]\[\033[38;5;0m\]@\[$(tput sgr0)\]\
 # export HTTP_PROXY=http://$PROXY
 # export https_proxy=https://$PROXY
 # export HTTPS_PROXY=https://$PROXY
+
+# glcoud
+gcloud_path="/usr/local/google-cloud-sdk"
+if [ -f $gcloud_path/completion.bash.inc ]; then
+  source $gcloud_path/completion.bash.inc
+fi
+if [ -f $gcloud_path/path.bash.inc ]; then
+  source $gcloud_path/path.bash.inc
+fi
 
 # generic aliases
 alias ll='ls -alhG'
@@ -54,6 +65,11 @@ elif [ "$os" == "OSX" ]; then
   alias lam='less /var/log/system.log'
 fi
 
+# source local aliases
+if [ -f ~/.myalias ]; then
+  source ~/.myalias
+fi
+
 if [ -f ~/.git-completion.bash ]; then
   . ~/.git-completion.bash
 fi
@@ -62,8 +78,10 @@ os-info() {
   echo -en "\n         OS: "
   if [ -e /etc/redhat-release ]; then
     cat /etc/redhat-release
+    flavour="redhat"
   elif [ -e /etc/lsb-release ]; then
     cat /etc/lsb-release | grep DESCRIPTION | cut -d'"' -f2
+    flavour="ubuntu"
   else
     cat /etc/issue
   fi
@@ -152,7 +170,13 @@ run-on-many() {
 
 setup-packages() {
   pkgs="wget curl git bash-completion net-tools vim-enhanced bind-utils"
-  yum install -y $pkgs
+  if [ "$flavour" == "redhat" ]; then
+    yum install -y $pkgs
+  elif [ "$flavour" == "ubuntu" ]; then
+    apt-get install $pkgs
+  else
+    echo -e "OS $os ($flavour) unknown."
+  fi
 }
 
 # handy docker stuff

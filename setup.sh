@@ -3,7 +3,9 @@
 
 pwd=`pwd`
 
-mv ~/.bashrc ~/.bashrc.orig
+if [ -f ~/.bashrc ]; then
+  mv ~/.bashrc ~/.bashrc.orig
+fi
 cp $pwd/bashrc ~/.bashrc
 chmod 644 ~/.bashrc
 cp $pwd/gitconfig ~/.gitconfig
