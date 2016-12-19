@@ -1,3 +1,6 @@
+[user]
+name = Chrigi Frei
+email = chrigi.frei@gmail.com
 [alias]
 ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
 ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
