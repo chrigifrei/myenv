@@ -10,8 +10,14 @@ mysshkeys=( \
 
 if uname -a | grep Linux >/dev/null; then
   os="Linux"
-  flavour="unknown"
-elif uname -a | grep Darwin >/dev/null; then 
+  if [ -e /etc/redhat-release ]; then
+    flavour="redhat"
+  elif [ -e /etc/lsb-release ]; then
+    flavour="ubuntu"
+  else
+    flavour="unknown"
+  fi
+elif uname -a | grep Darwin >/dev/null; then
   os="OSX"
   flavour="osx"
 fi
@@ -76,12 +82,10 @@ fi
 
 os-info() {
   echo -en "\n         OS: "
-  if [ -e /etc/redhat-release ]; then
+  if [ "$flavour" == "redhat" ]; then
     cat /etc/redhat-release
-    flavour="redhat"
-  elif [ -e /etc/lsb-release ]; then
+  elif [ "$flavour" == "ubuntu" ]; then
     cat /etc/lsb-release | grep DESCRIPTION | cut -d'"' -f2
-    flavour="ubuntu"
   else
     cat /etc/issue
   fi
