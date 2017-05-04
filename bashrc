@@ -69,6 +69,8 @@ elif [ "$os" == "OSX" ]; then
   alias sublime='/Applications/Sublime\ Text\ 2.app/Contents/MacOS/Sublime\ Text\ 2'
   alias tam='tail -f /var/log/system.log'
   alias lam='less /var/log/system.log'
+  alias tad='tail -f ~/Library/Containers/com.docker.docker/Data/log/system.log'
+  alias docker-console='screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty'
 fi
 
 # source local aliases
