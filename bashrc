@@ -151,7 +151,7 @@ run-on-many() {
   cmd=$@
 
   if [ "$HOSTS" == "" ]; then
-    echo -en "\n   please provide hostlist: "
+    echo -en "\n   please provide [user@]host list: "
     read HOSTS
     export HOSTS
   else
@@ -178,15 +178,32 @@ setup-packages() {
 # handy docker stuff
 if docker >/dev/null 2>&1; then
 
-  alias docker-stop-all='docker stop $(docker ps -a -q)'
-  alias docker-rm-all='docker rm $(docker ps -a -q)'
-  alias docker-vol-rm-all="for i in $(docker volume ls | grep local | awk '{print $2}'); do docker volume rm $i; done"
+  alias dps='docker ps'
+  alias dpa='docker ps -a'
+  alias di='docker images'
+  alias dip='docker inspect'
+  alias dkd="docker run -d -P"
+  alias dki="docker run -t -i -P"
+  alias dex="docker exec -i -t"
+  alias dl="docker ps -l -q"
+
+  drm() { docker rm $(docker ps -q -a); }
+  dri() { docker rmi $(docker images -q); }
+  dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/"| sed "s/['|\']//g" | sort; }
+  
+  docker-vol-rm-all() {
+    for i in $(docker volume ls | grep local | awk '{print $2}'); do
+      docker volume rm $i;
+    done
+  }
 
   docker-push-all-images() {
     if [ -z ${REG} ]; then
       echo -en "\n   please provide desired target registry: "
       read REG
       export REG
+    else
+      echo -en "\n   Going to push to: $REG (change: unset REG)"
     fi
 
     docker images | grep -v REPO | while IFS= read -r l; do
