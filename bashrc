@@ -180,17 +180,25 @@ if docker >/dev/null 2>&1; then
 
   alias dps='docker ps'
   alias dpa='docker ps -a'
-  alias di='docker images'
+  alias dim='docker images'
   alias dip='docker inspect'
-  alias dkd="docker run -d -P"
-  alias dki="docker run -t -i -P"
-  alias dex="docker exec -i -t"
-  alias dl="docker ps -l -q"
+  alias drd="docker run -d -P"
+  alias dri="docker run -ti -P"
+  alias dkl="docker kill"
+  alias drm="docker rm"
+  alias dex="docker exec -ti"
+  alias dvl="docker volume list"
+  alias dvi="docker volume inspect"
+  alias dnl="docker network list"
+  alias dni="docker network inspect"
+  alias dcu="docker-compose up -d"
+  alias dcd="docker-compose down"
 
-  drm() { docker rm $(docker ps -q -a); }
-  dri() { docker rmi $(docker images -q); }
+  did() { export id=$(docker ps -l -q); echo $id; }
+  docker-rm-all() { docker rm $(docker ps -q -a); }
+  docker-img-rm() { docker rmi $(docker images -q); }
   dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/"| sed "s/['|\']//g" | sort; }
-  
+
   docker-vol-rm-all() {
     for i in $(docker volume ls | grep local | awk '{print $2}'); do
       docker volume rm $i;
