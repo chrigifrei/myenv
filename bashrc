@@ -29,10 +29,6 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-shopt -s globstar
-
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
@@ -108,7 +104,6 @@ if [ -f $gcloud_path/path.bash.inc ]; then
 fi
 
 # generic aliases
-alias ll='ls -alhG'
 alias via="vim $uxnotes"
 alias vib="vim $bashnotes"
 alias vip="vim $pythonnotes"
@@ -116,12 +111,18 @@ alias vians="vim $ansiblenotes"
 
 # Linux aliases
 if [ "$os" == "Linux" ]; then
+  alias ll='ls -alh --color=auto'
   alias op='netstat -tulpn'
   alias tam='tail -f /var/log/messages'
   alias lam='less /var/log/messages'
 
+  # If set, the pattern "**" used in a pathname expansion context will
+  # match all files and zero or more directories and subdirectories.
+  shopt -s globstar
+
 # OSX aliases
 elif [ "$os" == "OSX" ]; then
+  alias ll='ls -alhG'
   alias op='sudo lsof -i -P | grep -i listen'
   alias tam='tail -f /var/log/system.log'
   alias lam='less /var/log/system.log'
@@ -246,8 +247,10 @@ if docker >/dev/null 2>&1; then
   alias drd="docker run -d -P"
   alias dri="docker run -ti -P"
   alias dkl="docker kill"
+  alias dst="docker stop"
   alias drm="docker rm"
   alias dex="docker exec -ti"
+  alias dlo="docker logs"
   alias dvl="docker volume list"
   alias dvi="docker volume inspect"
   alias dnl="docker network list"
