@@ -249,6 +249,7 @@ if docker >/dev/null 2>&1; then
   alias dkl="docker kill"
   alias dst="docker stop"
   alias drm="docker rm"
+  alias drmi="docker rmi"
   alias dex="docker exec -ti"
   alias dlo="docker logs"
   alias dvl="docker volume list"
