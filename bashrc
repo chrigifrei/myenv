@@ -29,9 +29,6 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
@@ -134,8 +131,8 @@ if uname -a | grep Linux >/dev/null; then
   os="Linux"
   if [ -e /etc/redhat-release ]; then
     flavour="redhat"
-  elif [ -e /etc/lsb-release ]; then
-    flavour="ubuntu"
+  elif [ -e /etc/os-release ]; then
+    flavour=$(cat /etc/os-release | egrep "^ID=" | cut -d'=' -f2)
   else
     flavour="unknown"
   fi
@@ -161,6 +158,11 @@ if [ -f $gcloud_path/path.bash.inc ]; then
   source $gcloud_path/path.bash.inc
 fi
 
+# make less more friendly for non-text input files, see lesspipe(1)
+if [ "$flavour" != "coreos" ]; then
+  [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+fi
+
 # generic aliases
 alias via="vim $uxnotes"
 alias vib="vim $bashnotes"
@@ -171,8 +173,14 @@ alias vians="vim $ansiblenotes"
 if [ "$os" == "Linux" ]; then
   alias ll='ls -alh --color=auto'
   alias op='netstat -tulpn'
-  alias tam='tail -f /var/log/messages'
-  alias lam='less /var/log/messages'
+
+  if [ "$flavour" == "ubuntu" ]; then
+    alias tam='tail -f /var/log/syslog'
+    alias lam='less /var/log/syslog'
+  else
+    alias tam='tail -f /var/log/messages'
+    alias lam='less /var/log/messages'
+  fi
 
   # If set, the pattern "**" used in a pathname expansion context will
   # match all files and zero or more directories and subdirectories.
@@ -186,6 +194,11 @@ elif [ "$os" == "OSX" ]; then
   alias lam='less /var/log/system.log'
   alias tad='tail -f ~/Library/Containers/com.docker.docker/Data/log/system.log'
   alias docker-console='screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty'
+fi
+
+# coreos aliases
+if [ "$flavour" == "coreos" ]; then
+  alias htop="docker run --rm -it --pid host frapsoft/htop"
 fi
 
 # source local aliases
@@ -320,6 +333,7 @@ if docker >/dev/null 2>&1; then
   did() { export id=$(docker ps -l -q); echo $id; }
   docker-rm-all() { docker rm $(docker ps -q -a); }
   docker-img-rm() { docker rmi $(docker images -q); }
+  docker-vol-rm() { docker volume ls -qf dangling=true | xargs docker volume rm; }
   dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/"| sed "s/['|\']//g" | sort; }
 
   docker-vol-rm-all() {
