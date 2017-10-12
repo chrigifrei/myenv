@@ -1,0 +1,10 @@
+	### search for a table
+select table_name from dictionary where table_name like upper('%tablespace%');
+	### create tablespace
+create tablespace RHW_DATA datafile '/data/u01/oradata/EGLON/rhw_data01.dbf' size 8m autoextend on maxsize 512m extent management local uniform size 128k;
+	### create a profile (defines password rules)
+create profile RWH_PROFILE limit failed_login_attempts 5 password_life_time 60 password_reuse_time 60 password_verify_function default password_lock_time unlimited password_grace_time 7;
+select distinct profile, resource_type from dba_profiles;
+select resource_name,resource_type,limit from dba_profiles where profile='RWH_PROFILE';
+
+

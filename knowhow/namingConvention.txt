@@ -1,0 +1,27 @@
+# 17.11.2015
+# christian.frei@umb.ch
+
+Naming convention
+---------------------------------------
+LocationFunctionYearMonthSalt
+LLLFFFFYYMMS
+
+Location:
+	• linux.lab - lil
+	• lotr.lab - lol
+	• umb.ch - umb
+
+Function (a 4 letter descriptive term, e.g.):
+	• gateway - gtwy
+	• nameserver - nmsr
+	• openstack compute node - oscn
+	• a good try is to remove the vowels and see how it sounds
+
+Year: the two digits of the year of implementation
+Month: the two digits of the month of implementation
+Salt: a letter to distiguish if there are more then one server with the same funtion in the same month
+
+examples:
+linux.lab gateway - lilgtwy1511a
+lotr.lab openstack network node - lolosnn1508a
+

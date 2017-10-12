@@ -1,0 +1,328 @@
+
+string operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+${VAR##*/}	cuts off all before the last /
+${VAR%%.*}	cuts off all after the first .
+${VAR:<position>:<charCount>}	gets at <position> <charCount> chars of VAR
+${VAR:0:2}	gets the first two chars of VAR
+${VAR:1}	trims the first char of VAR
+
+
+IF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if [ $GO == "y" ];
+then
+	<command>
+else
+	<command>
+fi
+
+if <command>; then
+else
+fi
+
+if [ "$go" == "y" ] && [ "$go" == "y" ]; then
+if [ "$go" == "y" ] || [ "$go" == "Y" ]; then
+elif [ -n "$(cat /etc/diesunddas | grep soso)" ]; then		check if $() expression is not null
+elif [ -z "$(cat /etc/diesunddas | grep soso)" ]; then		check if $() expression is null
+elif [ -z "$var" ]; then					returns TRUE if $var is unset
+elif [ -e /etc/diesunddas ]; then				check if /etc/diesunddas exists
+else
+fi
+
+invert: if [ ! "`cat <filename>`" ]; then blabla; fi
+not equal: if [ "$A" -ne "b" ]
+
+if ! grep ^$USER /etc/passwd 1> /dev/null; then
+	echo "your user account is not managed locally"
+else
+	echo "your user account is managed locally"
+fi
+
+short if version:
+[[ $? -eq 0 ]] && echo "return code = 0"
+
+
+case
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+case "$1" in
+        start)
+            start
+            ;;
+         
+        stop|halt)
+            stop
+            ;;
+         
+        status)
+            status anacron
+            ;;
+        restart)
+            stop
+            start
+            ;;
+        condrestart)
+            if test "x`pidof anacron`" != x; then
+                stop
+                start
+            fi
+            ;;
+         
+        *)
+            echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+            exit 1
+ 
+esac
+
+FOR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+for i in x y z; do 
+	<command>;
+done
+
+for (( i=0; i<=5; i++ )); do
+	<command>;
+done
+
+
+for i in $something
+do
+	[ condition ] && continue
+	cmd1
+	cmd2
+done
+
+
+
+WHILE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+while [ $GO == 1 ]; do
+	<command>
+done
+
+while [ 1 ]; do echo cycle $i; i=$(($i+1)); sleep 1; done
+
+read file line by line:
+while read line; do
+	something with $line
+done < file.txt
+
+oldIFS=$IFS
+IFS=$'\n'
+for line in $(cat /path/to/file); do
+	something with $line
+done
+IFS=$oldIFS
+
+
+while true
+do
+	[ condition1 ] && continue
+	cmd1
+	cmd2
+done
+
+
+
+ARRAY
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+array=( element1 element2 ... )
+array=( "this=1" "that % 1" ... )
+
+looping through an array
+get the index number
+for number in $(seq 0 $((${#kernelParams[@]} - 1))); do
+  # do whatever on $number      
+done
+
+for i in "${arrayName[@]}"
+do
+   # do whatever on $i
+done
+
+for (( i=0; i<${#arrayName[@]}; i++ )); do
+       echo ${arrayName[$i]}; 
+       continue					# skip one iteration
+       break					# breaks the loop
+done
+
+[bob in ~] ARRAY=(one two three)
+
+[bob in ~] echo ${ARRAY[*]}
+one two three
+
+[bob in ~] echo $ARRAY[*]
+one[*]
+
+[bob in ~] echo ${ARRAY[2]}
+three
+
+[bob in ~] ARRAY[3]=four
+
+[bob in ~] echo ${ARRAY[*]}
+one two three four
+
+
+variables in variables
+*********************************
+key1="schlüssel1"
+key2="schlüssel2"
+a=1
+# echo $(eval "echo \${$(echo key${a})"-''})
+schlüssel1
+
+
+SPLIT, split
+*********************************
+root@ jabata:/ftp # file=/root/test/dir/file.txt
+root@ jabata:/ftp # echo $file
+/root/test/dir/file.txt
+root@ jabata:/ftp # 
+root@ jabata:/ftp # echo ${file##*/}
+file.txt
+root@ jabata:/ftp # echo ${file%/*}
+/root/test/dir
+
+split ip
+$ IP=(${IP//./ })
+
+
+FUNCTIONS
+*********************************
+function call:
+value="hallo"
+functionName $value
+
+functionName() {
+	echo $1
+}
+
+output:
+hallo
+
+function call in if
+if ( functionName "$variable" ); then
+fi
+
+
+NUMBERS & CALCULATIONS, calculate, berechnen
+*********************************
+NUMMER=0
+OLD=$NUMMER
+NUMMER=$(($NUMMER + 1))
+VERSION=`expr $i + 1`
+modulo: expr 5 % 3
+
+random:
+$RANDOM		5 digit random number
+
+
+comments
+*********************************
+:<<'EOC'
+	your comment
+	block, here
+EOC
+
+
+other syntax
+*********************************
+$i contains third column:
+for i in `multipath -ll mpath12 | grep sd | awk '{print $3}'`; do echo $i; done
+
+BASENAME=$(basename $0)
+DIRNAME=$(dirname $0)
+
+
+rotating cursor; progress indicator
+*********************************
+chars=( "-" "\\" "|" "/" )
+count=0
+while [ 0 ]; do
+	pos=$(($count % 4))
+	echo -n $1" ${chars[$pos]} "
+	echo -ne "\r"
+	count=$(($count + 1))
+done
+
+
+refresh line, line update:
+*********************************
+echo -n "your line text"
+sleep 1
+echo -ne "\r\E[K"
+
+
+command line arguments handling, args
+*********************************
+check for arguments:
+if [ $# -eq 0 ]; then
+    echo "No arguments supplied"
+fi
+
+
+check if an argument is an empty string:
+if [ -z "$1" ]; then
+    echo "No argument supplied"
+fi
+
+
+check for specific arguments:
+set -- $(getopt "fh:" "$@") || {
+	<printUsage>; exit 1
+}
+
+while [[ "$1" != "--" ]]; do
+	case "$1" in
+		-f)
+		<doSomething>
+		;;
+		-h)
+		<doSomething>
+		;;
+		*)
+		<printUsage>; exit 1
+		;;
+	esac
+	shift
+done
+shift
+
+SOLUTION 2:
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  uninstall)
+    uninstall
+    ;;
+  retart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|uninstall}"
+esac
+
+SOLUTION 3:
+while [[ $# > 0 ]]; do
+  key="$1"
+  case $key in
+    "-f"|"--file" )
+      send_message_to_file "${msgString}" "$2"
+      exit 0
+    ;;
+    "-v"|"--verbose" )
+      VERBOSE=1
+      shift 
+    ;;
+    *)
+      break
+    ;;
+  esac
+done
+print_usage
+exit 1

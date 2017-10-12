@@ -1,0 +1,331 @@
+############################################################################
+#
+# SQL
+#
+############################################################################
+
+start with # dgh or # dgmgr
+DGMGRL> show configuration verbose;
+
+has to be the same otherwise DG problem
+SQL> select protection_mode, protection_level from v$database;
+
+
+@SQL: tempfile, tmp tablespace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+check for tempfiles used by DB:
+SQL> SELECT * FROM v$tempfile;
+SQL> SELECT name, bytes/1024/1024 FROM v$tempfile;
+ 
+remove and recreate tempfile:
+SQL> ALTER DATABASE TEMPFILE '/u00/oradata/ABR920A/temp01ABR920A.dbf' DROP;
+SQL> ALTER TABLESPACE temp ADD TEMPFILE '/u00/oradata/ABR920A/temp01ABR920A.dbf' SIZE 5M REUSE;
+
+
+@SQL: log
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> select * from v$logfile;
+
+
+@SQL: search, datadictionary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+search in the datadictionary:
+SQL> select table_name from dictionary where upper(table_name) like upper('%<searchString>%');
+
+search for tables owned by a specific user:
+SQL> select table_name, owner from dba_tables where upper(owner) like upper('%<username>%');
+
+
+@SQL: functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+to_date('01.04.2011','dd.mm.yyyy')
+to_char(12345)
+NVL(<columnWithNull>,0)			-> to give the value 0 to a null field
+
+
+@SQL: datapump, export import, data migration, directory object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+direcotry /u00/app/oracle/admin/EGLON/exp must exist on the system!
+SQL> CREATE DIRECTORY dmpdir AS '/u00/app/oracle/admin/EGLON/exp';
+SQL> GRANT READ, WRITE ON DIRECTORY dmpdir TO RWH;
+SQL> select * from dba_directories;			-> verify the creation of the directory
+now run from command line:
+$ expdp system/manager DUMPFILE=expdat.dmp LOGFILE=expdat.log DIRECTORY=dmpdir 
+	CONTENT=[ALL/DATA_ONLY/METADATA_ONLY] 
+	TABLES=scott.emp,scott.dept 
+	QUERY=scott.emp:'"where deptno=10 order by ename"'
+
+import data
+$ impdp system/manager DUMPFILE=expdat.dmp LOGFILE=impdat.log DIRECTORY=dmpdir 
+	TABLES=scott.emp 
+	REMAP_SCHEMA=<fromUser>:<toUser>	-> remap the tables from user to another user
+	FULL=yes				-> imports the full dmp file, use without TABLES= option
+
+
+@SQL: tablespace handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create tablespace RHW_DATA datafile '/data/u01/oradata/EGLON/rhw_data01.dbf' 
+	size 8m 
+	autoextend on 
+	maxsize 512m 
+	extent management local 
+	uniform size 128k;
+SQL> alter tablespace <name> add datafile '</location/of/file>' size x[M/G];
+SQL> alter tablespace <name> offline [normal/temporary/immediate];
+SQL> alter database datafile '</location/of/file>' resize x[M/G];
+SQL> alter database datafile '</location/of/file>' autoextend [on/off];
+
+find system tablespace:
+SQL> select tablespace_name, file_id, file_name, bytes, maxbytes, autoextensible from dba_data_files where tablespace_name = 'SYSTEM';
+
+
+@SQL: table handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create table scott.trainees ("TR_NO" number primary key, 
+				  "NAME" varchar2(20) not null, 
+		 		  "VORNAME" varchar2(20) not null, 
+		 		  "EINTRITTSDATUM" date not null) 
+	tablespace trainee_2k;
+SQL> insert into scott.trainees (TR_NO, NAME, VORNAME, EINTRITTSDATUM) 
+	values("1", "Frei", "Christian", to_date('01.04.2011','dd.mm.yyyy'));
+
+
+@SQL: external table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create table scott.trainees_ext 
+	organization external (type oracle_datapump default directory /home/oracle location ('trainees_ext.dmp')) 
+	as select * from scott.trainees;
+
+
+@SQL: password profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create profile RWH_PROFILE limit 
+	failed_login_attempts 5 
+	password_life_time 60 
+	password_reuse_time 60 
+	password_verify_function default 
+	password_lock_time unlimited 
+	password_grace_time 7;
+verify if the profile was created successfully:
+SQL> select distinct profile, resource_type from dba_profiles;
+SQL> select resource_name,resource_type,limit from dba_profiles where profile='RWH_PROFILE';
+
+
+@SQL: role, rolle
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create role RWH_ROL_RW;
+
+
+@SQL: user handling, schema, rights
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> create user RWH identified by RWH i
+	default tablespace RHW_DATA 
+	quota unlimited on RHW_DATA 
+	profile [default/<anyProfile>];
+SQL> grant RWH_ROL_RW to RWH;
+
+
+@SQL: dbname, databasename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SQL> select * from global_name;
+SQL> select * from v$database;
+
+
+############################################################################
+#
+# ORACLE ERROR MESSAGES
+#
+############################################################################
+
+ERROR MESSAGES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+out of memory
+shmall in /etc/sysctl.conf is too small
+shmall is in pages
+get syste pagesize with:
+# getconf PAGE_SIZE
+<90% of physical RAM in bytes> / <page_size> = shmall
+
+
+MEMORY_TARGET not supported on this system
+/dev/shm to small
+enlarge shared memory with command
+	# mount -o remount,size=<newSize> /dev/shm
+
+############################################################################
+#
+# ORACLE INSTALLATION/ UNINSTALLATION
+#
+############################################################################
+
+ORACLE INSTALLING REDHAT (from installserver)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+following packages are required:
+for i in compat-gcc-34.x86_64 compat-gcc-34-c++.x86_64 compat-libstdc++-33.i386 compat-libstdc++-33.x86_64 glibc-devel.i386 glibc-devel.x86_64 glibc-headers.x86_64 libXp.i386 libXtst.i386 libXtst.x86_64 libgomp.i386 libgomp.x86_64 libstdc++-devel.i386 libstdc++-devel.x86_64 sysstat.x86_64 xorg-x11-xauth.x86_64 xterm.x86_64 cpp.x86_64 libXaw.x86_64 libXmu.x86_64 libXpm.x86_64 gcc.x86_64 gcc-c++.x86_64; do yum -y install $i; done
+
+
+ORACLE UNINSTALLING
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use the Oracle Universal Installer from the installed product:
+/u00/app/oracle/product/11.2.0/oui/bin/runInstaller
+
+Select not the db_home. Otherwise you will be adviced to use $ORACLE_HOME/deinstall/deinstall which is not working.
+Select instead the product, one level deeper than db_home.
+
+Remove the $ORACLE_HOME dir
+Remove the oraInventory dir
+
+
+ORACLE INSTALL on Ubuntu 11.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+additional packages required:
+sudo apt-get install libstdc++5
+
+
+TVDAdmin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+edit template file in <ORACLE_BASE>/local/tvdadmin/template/newdb
+create the install scripts
+	$ newdb.ksh -f  <ORACLE_BASE>/local/tvdadmin/template/newdb/myTemplate -S <SID>
+check the scripts createdb.ksh and CreateDB.sql
+create the DB
+	$ ./createdb.ksh
+
+
+BASENV INSTALLATION & POST INSTALLATION TASKS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+copy two apropriate packages
+	basenv-11.05.final.a.linux24.5.8.4_32.tar
+	basenv-11.05.final.a.noarch.tar.gz
+extract the one with the specific arch (not the noarch package!) in $ORACLE_BASE/local
+run the ./base_install-5.8.4_32.linux24.ksh
+cp /u00/app/oracle/local/dba/templates/etc/oracle.profile ~/.profile
+if the .profile is not sourced after next login, add following line to ~/.bash_profile
+source ~/.profile
+in /u00/app/oracle/network/admin/listener.ora change 
+	<HOSTNAME> to apropriate hostname
+	IMPORTANT: dont enter 'localhost', use hostname instead. otherwise EM will not work properly.
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = <instance_name>)
+      (ORACLE_HOME = <oracle_home>)
+    )
+  )
+in /u00/app/oracle/network/admin/tnsnames.ora change
+	<HOSTNAME> to apropriate hostname
+in /u00/app/oracle/etc/oratab
+	<SID>:/u00/app/oracle/product/11.2.0:N
+use N for not automatically starting instance, or use Y for automatically starting instance
+
+
+enterprise manager, em handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ emctl start dbconsole
+$ emctl stop dbconsole
+$ emctl status dbconsole
+
+
+the folowing libs needs to be linked to a different location:
+sudo ln -s /usr/lib/i386-linux-gnu/libpthread_nonshared.a /usr/lib/
+sudo ln -s /usr/lib/i386-linux-gnu/libc_nonshared.a /usr/lib/
+sudo ln -s /usr/lib/i386-linux-gnu/libstdc++.so.6 /usr/lib/
+sudo ln -s /lib/i386-linux-gnu/libgcc_s.so.1 /lib/
+
+run a sql script
+from SQL prompt:
+SQL> @script.sql
+from console prompt (closing sql connection):
+echo exit | sqlplus user/pass@DBName @scriptname
+from console prompt (without closing sql connection):
+sqlplus user/pass@DBName @scriptname
+
+
+automatisches starten/ stoppen der DB
+im /u00/app/oracle/local/dba/etc/oracle_start_stop.conf
+Auskommentieren verhindert das ausführen
+[start]
+listener.ksh start
+db.ksh start -f -p 5
+emctl.ksh start dbconsole PLANON
+emctl.ksh start dbconsole RCAT
+
+[stop]
+emctl.ksh stop dbconsole PLANON
+emctl.ksh stop dbconsole RCAT
+listener.ksh stop
+db.ksh stop -t 180 -f -p 5
+
+
+ueberpruefen ob die Datenbank laeuft
+im /u00/app/oracle/local/dba/bin/
+# oraup.ksh
+
+Listener control utility
+ $ lsnrctl
+
+SQL Prompt ohne Anmeldung
+$ sqlplus "/ as sysdba"
+
+execute shell command in SQL
+SQL> !<shellCommand>
+
+
+Error Description:
+-----------------------
+Whenever you try to connect to database it returns message,
+
+    ORA-01034 : ORACLE not available
+    ORA-27101 : shared memory realm does not exist
+
+Cause of the Problem:
+--------------------------
+This problem happens whenever ORACLE_SID or ORACLE_HOME is not properly set. Or for normal users whenever oracle database is not started. 
+For remote users there may be a problem in listener.
+
+Solution of the Problem:
+----------------------------
+A)For Local Connections:
+----------------------------
+1)Verify the ORACLE_SID and ORACLE_HOME is set properly. You can check the variable in UNIX by,
+
+SQL> !echo $ORACLE_SID
+data1
+
+SQL> !echo $ORACLE_HOME
+/oracle/app/oracle/product/10.2.0/db_1
+
+If it is set incorrectly then set on UNIX by
+
+$ export ORACLE_SID=db_name_here (on ksh,sh)
+$ setenv ORACLE_SID=db_name_here (on csh)
+
+Remember that ORACLE_SID is case sensitive on UNIX.
+
+2)Verify the database instance is running.
+
+On UNIX you can verify by,
+SQL>!ps -ef |grep smon
+
+It will return a row as ora_smon_your_database_name
+
+If it does not return such row then your database is not started. So, start it after setting proper sid.
+
+$sqlplus / as sysdba
+$startup
+
+On windows system press CTRL+ALT+DEL and see the process and look for oracle.exe. If it is not present there then from right click my computer>select manage>services>and select oracle database service and start it.
+B)For Remote Connections:
+-------------------------------
+1)Verify the ORACLE_HOME is set correctly for all listed Oracle databases. If the ORACLE_HOME points to the different oracle version software, but the database was created using a different version, then this error can occur.
+
+2)Review the listener.ora file and it is properly set. Like if you set ORACLE_HOME path inside listener ended by slash(/) then the error will come.
+
+Incorrect:
+(ORACLE_HOME = /oracle/app/oracle/product/10.2.0/)
+Correct:
+(ORACLE_HOME = /u01/app/oracle/product/10.2.0)
+
+3)If listener.ora use SID then verify that you have set properly ORACLE_SID. Also be sure about listener services by issuing lsnrctl services.
+
+4)Verify the database is running on server machine while you connect as normal user.

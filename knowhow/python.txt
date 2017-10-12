@@ -1,0 +1,264 @@
+############################################################################
+#
+# My Python know-how
+# started collecting at Oct 2012
+############################################################################
+
+# header
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/env python
+
+
+# run shell commands
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+import subprocess
+subprocess.call("ls -l", shell=True)
+
+try:
+	subprocess.check_call(cmd, stderr=subprocess.STDOUT, shell=True)
+except:
+	print "exceptional command was: " + cmd
+
+# using pipes (|) within shell commands
+p = Popen(<cmd>, shell=True, stdout=PIPE, stderr=PIPE)
+out = p.communicate()
+if p.returncode != 0:
+	return "[ERROR] run_cmd failed (%d): %s" % (p.returncode, out[1])	
+
+
+variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+string = "text"
+stringWithBreaks = """
+line1
+line2
+"""
+
+check for string in string
+if "linux" in sys.platform:
+
+
+string operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+validate string
+import re
+if re.match("^[a-zA-Z0-9]+$", string): print string + "is an alphanumeric string"
+if re.match("^\D+$", string): print string + "is an alpha string"
+if re.match("^\d+$", string): print string + "is a numeric string"
+if re.match("^.+@.+\..{2,3}$", string): print string + "is an email string"
+
+find a string (pattern matching)
+import re
+re.search("pattern", string)
+
+lower, uppercase
+string.lower()
+string.upper()
+
+replace string:
+string.replace("old", "new")		# replace all "old" with "new"
+string.replace("old", "new", 3)		# replace 3 first "old" with "new"
+
+remove linebreaks and whitespaces:
+string.lstrip()				# cuts off all leading whitespaces
+string.rstrip()				# cuts off all tailing whitespaces, not only linebreaks
+string.strip()				# cuts off all leading and tailing whitespaces and linebreaks
+
+split string:
+b = a.split(".")[-1]			# gives the last element of a splitted by .
+a.split()				# will split a on all space and tabs (no matter if one or many spaces, tabs used in between elements)
+
+
+arrays, lists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+array = [element1, element2]
+print array[0]			prints the first element of the array
+print array[:3]			prints the first 4 elements of the array
+print array[-1]			prints the last element of the array
+
+count=0
+for element in array:
+	count+=1
+	print "Element: %s, Number %d" % (element,count)
+
+length of array:
+len(array)
+
+convert string to array:
+array = list(string)
+''.join(array)			converts array to string
+
+
+# print dinge
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+x = 42
+y = 3.14
+z = "george"
+print x					# prints: 42
+print 'result = %d' % x                 # prints: result = 42
+print 'result = %d %f' % (x,y)          # prints: result = 42 3.14
+print 'hello %s' % z                    # prints: hello george
+
+# print on the same line
+import sys
+sys.stdout.write("\r\x1b[K"+<StringVar>.__str__())
+sys.stdout.flush()
+sys.stdout.write("\n")
+
+
+functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def functionName():
+	command1
+
+def functionName(x):
+	return x * x
+
+result = functionName(3)
+print result
+
+
+search and replace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+import fileinput
+for line in fileinput.input(<file>, inplace=True):
+    line = line.replace("<searchString>","<replaceString>")
+    print line.rstrip()		# writes the edited line to the file
+
+
+date dinge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+import datetime
+now = datetime.datetime.now()
+print now.strftime('We are the %b %d %T')
+print datetime.datetime.now().strftime("%b %d %H:%M:%S %Y")
+	Jul 04 12:27:51 2016
+
+get a timestamp as filextension e.g.
+import datetime
+import time
+str(datetime.date.today()) + "_" + str(time.strftime("%H%M"))	# output: 2012-10-25_1711
+
+
+file handling, file dinge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+read a file line by line:
+with open("/path/to/file") as infile:
+	for line in infile:
+		doSomething(line)
+
+read one line:
+infile = open('filename.txt', 'r')
+firstLine = infile.readline()
+
+inplace file editing:
+import fileinput
+for line in fileinput.input("<fileName>", inplace=True):
+	doSomething(line)
+	print line.rstrip()	# writes the line to the file
+
+write/appends line to a file:
+import sys
+try:
+	f = open(logfile, 'w')		# writes to file, clears existing content of file
+	#f = open(logfile, 'a')		# appends to a file
+	f.write('text' + os.linesep)
+	f.close()
+except IOError as e:
+	print "I/O error({0}): {1}".format(e.errno, e.strerror)
+except:
+	print "Unexpected error:", sys.exc_info()[0]
+	raise
+
+check if file exists:
+import os
+if not os.path.exists(ifcfg): print "file %s does not exist" % ifcfg
+
+make a directory:
+import os
+import sys
+try:
+	os.makedirs("/root/testdir", 0664)
+except OSError as e:
+        print "OS error({0}): {1}".format(e.errno, e.strerror)
+except:
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+
+copy a file:
+import shutil
+shutil.copy("/root/useradd.py", "/root/testdir")
+shutil.copy2("/root/useradd.py", "/root/testdir")	# like cp -p
+shutil.copytree("/root", "/root/testdir")		# like cp -r
+
+get directory content:
+import os
+for dirname, dirnames, filenames in os.walk('/Users/chrigi/Downloads/python'):
+	for subdirname in dirnames:
+		print os.path.join(dirname, subdirname)
+	for filename in filenames:
+		print os.path.join(dirname, filename)
+
+get path of the running script:
+os.path.realpath(__file__)
+
+get directory of the running script:
+os.path.dirname(os.path.realpath(__file__))
+
+
+console input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+var = raw_input("Enter something: ")
+
+
+code snippets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+RUN A COMMAND
+def run_command(cmd):
+    stdout = ""
+    try:
+        with (tempfile.TemporaryFile()) as stdout_file:
+            subprocess.check_call(cmd, stdout=stdout_file)
+            stdout_file.seek(0)
+            stdout = stdout_file.read()
+    except (OSError, subprocess.CalledProcessError), e:
+        sys.stderr.write("Error while executing command: '%s'\n" % (" ".join(cmd)))
+        sys.exit(-1)
+
+    return stdout
+
+def run_shell(cmd):
+    ''' runs a shell command
+        returns: 
+            dict (stdout, stderr, rc) '''
+
+    try:
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        out = p.communicate()
+        result = dict([('stdout', out[0].rstrip()), ('stderr', out[1].rstrip()), ('rc', p.returncode)])
+    except Exception as err:
+        print '%s running %s failed. %s. exiting.' % (inspect.stack()[1][3], cmd, err)
+        sys.exit(1)
+
+    if result['rc'] != 0: 
+        print '%s - failed command: %s' % (inspect.stack()[1][3], cmd)
+        print '%s - error stack (RC: %d) %s' % (inspect.stack()[1][3], p.returncode, out[1])
+        # self.logger.error('%s - failed command: %s' % (inspect.stack()[1][3], cmd))
+        # self.logger.error('%s - error stack (RC: %d) %s' % (inspect.stack()[1][3], p.returncode, out[1]))
+    
+    return result
+
+
+	
+CHECK FOR BEING ROOT
+if os.getuid() != 0:
+    sys.stderr.write('Error: this command requires root access to execute\n')
+    sys.exit(8)
+
+	
+WHERE ARE WE
+ME = os.path.abspath(__file__)
+PWD = os.path.dirname(ME)
+ANOTHER_DIR = os.path.join(PWD, "AnotherDir")
+
+

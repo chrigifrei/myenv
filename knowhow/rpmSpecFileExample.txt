@@ -1,0 +1,196 @@
+RPM building basics
+	1. basic annoted RPM spec file
+	2. example creating basic rpm package
+
+
+
+1. RPM spec file (an annotated example of a spec file)
+----------------------------------------------------------
+%define debug_package %{nil}		# %{nil} = Macros (like variables) that can be used in the spec file
+%define product_family Red Hat Enterprise Linux
+%define release_name Santiago
+%define base_release_version 6
+%define full_ release_version 6.0
+%define beta Beta
+
+Name:		<Name of the package>
+Version:	%{base_release_version}	# uses the definition above
+Release:	6.0.0.24%{?dist}		# Release of the package
+summary:	%{product_family} release file
+Group:		System Environment/Base
+License:	GPLv2
+Obsoletes:	rawhide-release redhat-release-as redhat-release-es redhat-release-ws
+			# A list of package names that this package makes obsolete. 
+			# If you had one of these packages installed on your machine, 
+			# an update of this package would remove that package.
+Source0:	redhat-release-6-4.tar.gz
+
+%description
+	# long description
+%{product_family} release files
+
+%prep
+%setup -q
+	# Unfortunately, the RPM spec file uses % for sections as well as macros.
+	# %prep is a section, %setup is a macro.
+
+%build
+echo OK
+
+%install CD
+rm -rf $RPM_BUILD_ROOT
+
+# create /etc
+mkdir -p $RPM_BUILD_ROOT/etc
+
+# create /etc/system-release and /etc/redhat/release
+echo "%{product_family} release %{full_release_version}%{?beta: %{beta}} {%{release_name})" > $RPM_BUILD_ROOT/etc/redhat-release
+ln -s redhat-release $RPM_BUILD_ROOT/etc/system-release
+
+# write cpe to /etc/system/release-cpe
+echo "cpe:/o:redhat:enterprise_linux:%{version}:%{?beta:%{beta}}%{!?beta:GA}" > $RPM_BUILD_ROOT/etc/system-release-cpe
+
+# create /etc/issue and /etc/issue.net
+cp $RPM_BUILD_ROOT/etc/redhat-release $RPM_BUILD_ROOT/etc/issue
+echo "Kernel \r on an \m" >> $RPM_BUILD_ROOT/etc/issue
+cp $RPM_BUILD_ROOT/etc/issue $RPM_BUILD_ROOT/etc/issue.net
+echo >> $RPM_BUILD_ROOT/etc/issue
+
+# copy yum repos to /etc/yum.repos.d
+mkdir -p $RPM_BUILD_ROOT/etc/yum.repos.d
+for file in *.repo; do
+	install -m 644 $file $RPM_BUILD_ROOT/etc/yum.repos.d
+done
+
+# copy GPG keys
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/pki/rpm-gpg
+for file in RPM-GPG-KEY* ; do
+	install -m 644 $file $RPM_BUILD_ROOT/etc/pki/rpm-gpg
+done
+
+# set up the dist tag macros
+install -d -m 755 $RPM_BUILD_ROOT/etc/rpm
+cat >> $RPM_BUILD_ROOT/etc/rpm/macros.dist << EOF
+
+# dist macros.
+%%rhel %{base_release_version}
+%%dist .el%{base_release_version}
+%%el%{base_release_version} 1
+EOF
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+	# The list of files to be included in this package. 
+	# Note that %defattr sets the default permissions the files will have, 
+	# %attr can override that on a file-by-file basis.
+	# %config and %doc mark configuration files and documentation respectively.
+	# %dir marks a directory owned by the package.
+%defattr(-,root,root)
+%doc EULA GPL autorun-template
+%attr{0644,root,root) /etc/redhat-release
+/etc/system-release
+%config %attr{0644,root,root) /etc/system-release-cpe
+%config(noreplace) %attr{0644,root,root) /etc/issue
+%config(noreplace) %attr{0644,root,root) /etc/issue.net
+%config %attr(0644,root,root) /etc/yum.repos.d/*
+%dir /etc/pki/rpm-gpg
+/etc/pki/rpm-gpg/*
+/etc/rpm/macros.dist
+
+%changelog
+* Mon Mar 29 2010 Dennis Gregorovic <dgregor@redhat.com> - 6-6.0.0.24
+- Add beta debuginfo repos
+- Resolves: rhbz#572308
+
+* Mon Apr 23 2009 Chris Salla <csalla@redhat.com> - 6-5.0.0.11
+- Add beta debuginfo repos
+- Resolves: rhbz#374508
+
+2. example creating basic rpm package
+----------------------------------------------------------
+
+[root@RHEL7 ~]# yum install -y rpm-build
+[root@RHEL7 ~]# useradd -g umb -u 1100 -c "RPM build user" -d /home/builder -m builder
+[root@RHEL7 ~]# passwd builder
+[root@RHEL7 ~]# su - builder
+
+[builder@RHEL7 ~]$ mkdir test-1.0
+[builder@RHEL7 ~]$ cat << EOF >> test-1.0/myscript
+> #!/bin/bash
+> date
+> EOF
+[builder@RHEL7 ~]$ tar czvf test-1.0.tar.gz test-1.0
+[builder@RHEL7 ~]$ vim test.spec
+[builder@RHEL7 ~]$ cat  test.spec
+Name:           test
+Version:        1.0
+Release:        1%{?dist}
+Summary:        a test package
+
+Group:          Testing
+License:        GPL
+URL:            http://www.umb.ch
+Source0:        %{name}-%{version}.tar.gz
+BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+BuildArch:      noarch
+
+BuildRequires:  /bin/rm, /bin/mkdir, /bin/cp
+Requires:       /bin/bash, /bin/date
+
+%description
+A testing package meant to deploy a single file.
+
+%prep
+%setup -q
+
+%build
+#configure      # "percent" configure will not be accepted as commented out
+#make %{?_smp_mflags}
+
+%install
+#make install DESTDIR=%{buildroot}
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/usr/local/bin
+cp myscript $RPM_BUILD_ROOT/usr/local/bin
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root,-)
+#%doc
+
+%attr(0755,root,root)/usr/local/bin/myscript
+
+%changelog
+* Tue May 12 2015 Christian <christian.frei@umb.ch> 1.0-1
+- Initial RPM
+
+----------------------- end of spec file
+
+
+configuring a GPG key for signing:
+[builder@RHEL7 ~]$ gpg --import christianFreiUMBag.asc
+[builder@RHEL7 ~]$ gpg --fingerprint
+/home/builder/.gnupg/pubring.gpg
+--------------------------------
+pub   2048R/F7B05879 2015-05-12
+      Key fingerprint = 76F6 F15E A4D5 2903 4DB3  5C8F 51DD 6760 F7B0 5879
+uid                  Christian Frei (UMB AG) <christian.frei@umb.ch>
+sub   2048R/C97DEC9E 2015-05-12
+
+[builder@RHEL7 ~]$ echo '%_gpg_name F7B05879' > .rpmmacros
+
+[builder@RHEL7 ~]$ rpmbuild test.spec
+error: File /home/builder/rpmbuild/SOURCES/test-1.0.tar.gz: No such file or directory
+	# rpmbuild created the directory structure needed
+	
+[builder@RHEL7 ~]$ cp test-1.0.tar.gz rpmbuild/SOURCES/
+[builder@RHEL7 ~]$ cp test.spec rpmbuild/SPECS/
+[builder@RHEL7 ~]$ cd rpmbuild/SPECS/
+[builder@RHEL7 SPECS]$ rpmbuild -ba test.spec
+[builder@RHEL7 SPECS]$ rpm --resign ../RPMS/noarch/test-1.0-1.el7.noarch.rpm
+
+

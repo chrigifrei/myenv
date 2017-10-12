@@ -1,0 +1,231 @@
+############################################################################
+#
+# ANSIBLE
+#
+############################################################################
+
+
+# AdNovum specials
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# NOTE Format:
+# NOTE 21.01.2016/extcfr:
+
+
+# to verify
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pre_tasks:
+    - name: Take service out of nginx upstream pools
+          local_action: command {{ playbook_dir }}/scripts/nginx-upstream-management.sh -s {{ item[0] }} -r {{ item[2] }} -g {{ item[1] }}
+          with_nested:
+            - groups['nginx_internal_servers']
+            - services_endpoints.keys()
+            - ansible_all_ipv4_addresses|last
+          when: item[0] != inventory_hostname
+
+
+# access a hostname from inventory
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# first host from group GROUPNAME
+{{ hostvars[groups['<GROUPNAME>'][0]].inventory_hostname }}
+
+
+# api calls, api dinge, API, uri, URI, url, URL
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# simple POST call with debug
+- name: NAME
+  uri:
+    method: POST
+    url: http://{{ VARIABLE }}/
+    return_content: yes
+    body: 'request="some_content":{{ VARIABLE }}'
+  register: output
+  delegate_to: localhost
+  tags: ['TAG']
+
+- debug:
+    var: output.content
+  tags: ['TAG']
+
+# credentials verification
+- name: verify API credentials
+  action: uri url=http://{{ VARIABLE }}/ return_content=yes
+  register: output
+  delegate_to: localhost
+  tags: ['TAG']
+
+- debug:
+    var: output.content
+  tags: ['TAG']
+
+- fail: msg='stop on failure'
+  when: "'WHATEVER TEXT INDICATES FAILURE' in output.content"
+  tags: ['TAG']
+
+
+# shell, bash, shell command, shell dinge
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: NAME
+  shell: do whatever in /path/{{ VARIABLE }}/
+  register: shellOutput
+  ignore_errors: True
+  delegate_to: "{{ RUN_ON_ANOTHER_HOST }}"
+  tags: ['TAG']
+
+# - debug:
+#     var: shellOutput.stdout
+#   tags: ['TAG']
+
+- name: use the output in the body of a API call
+  uri:
+    method: POST
+    url: http://{{ VARIABLE }}/
+    body: 'this the output of my shell command: {{ shellOutput.stdout }}'
+  tags: ['TAG']
+
+
+# environment variables, hide secrets
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# if host in group “deploy”: set env var SECRET; run shell cmd; store output in testing_env
+- name: Test ENV var
+  shell: echo $SECRET
+  environment:
+    SECRET: "{{ ldap_binddn_pw.stdout }}"
+  register: testing_env
+  when: inventory_hostname in groups.deploy
+
+- debug:
+    var=testing_env
+
+
+# template dinge, with_item
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: put policy files in place
+  template:   
+    src="{{ item }}"
+    dest="{{ vault.config_dir }}"
+    owner=root
+    group=root
+    mode=0600
+  with_items:
+    - "{{ lookup('fileglob','policies/*policy.hcl',wantlist=true) }}"
+
+- name: Remove logical volumes
+  lvol:
+    vg: '{{ item.vg }}'
+    lv: '{{ item.lv }}'
+    state: absent
+    force: yes
+  with_items:
+    - { vg: "{{ docker_storage_vg }}", lv: "docker" }
+    - { vg: "{{ docker_volume_vg }}", lv: "{{ docker_volume_vg }}-thin" }
+
+
+# find dinge
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: find all policies
+  find:
+    paths: "{{ vault.config_dir }}/policies"
+    patterns: "*.hcl"
+  register: policies_glob
+  run_once: true
+
+# - debug: var=policies_glob
+
+# get path:     policies_glob.files.path
+# get filename: policies_glob.files.path.split('/')[-1]
+# example:
+- name: configure audit backend
+  shell: "source /etc/profile; vault policy-write {{ item.path.split('/')[-1] | replace('.hcl', '') }} {{ item.path }}"
+  with_items:
+    - "{{ policies_glob.files }}"
+  run_once: true
+
+
+# lineinfile dinge, replace dinge
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: Add line to sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: 'usr/bin/bastion/rcssh$'
+    line: 'ALL ALL=NOPASSWD: /usr/bin/bastion/rcssh'
+
+- hosts: '127.0.0.1'
+  vars:
+    usernames:
+       - larry
+       - curly
+       - moe
+  tasks:
+    - name: Add user to AllowUsers
+      replace:
+        backup: yes
+        dest: /etc/ssh/sshd_config
+        regexp: '^(AllowUsers(?!.*\b{{ item }}\b).*)$'
+        replace: '\1 {{ item }}'
+      with_items: "{{ usernames }}"
+
+
+# nested loops, loop dinge
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# all.yml
+hosts:
+  target_users:
+    - name:    root
+      uid_gid: 0
+    - name:    ro
+      uid_gid: 10001
+  ro_cmds:
+    - /bin/ls
+    - /bin/date
+
+# playbook
+- name: Link allowed commands
+  file:
+    src: "{{ item[1] }}"
+    dest: "/home/{{ item[0].name }}/bin/{{ item[1].split('/')[-1] }}"
+    state: link
+  with_nested:
+    - "{{ hosts.target_users }}"
+    - "{{ hosts.ro_cmds }}"
+  when: item[0].uid_gid != 0
+
+
+# file exists
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# creates SSH keypair only if it does not exist yet
+- stat: path=“/etc/ssh/creds/id_rsa"
+  register: stat_result
+  when: inventory_hostname in groups.transfer1
+
+- name: Generate SSH key for transfer1
+  shell: ssh-keygen -C blabla -b 4096 -t rsa -f "/etc/ssh/creds/id_rsa" -q -N ""
+  args:
+    creates: "/etc/ssh/creds/id_rsa"
+  when: (inventory_hostname in groups.transfer1) and
+        (stat_result.stat.exists == False)
+
+
+# jinja2 list
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# space seperated list from dictionary like
+# hosts:
+#   target_users:
+#     - name:    root
+#       uid_gid: 0
+#     - name:    ro
+#       uid_gid: 10001
+
+{% set space = joiner(" ") %}{% for user in hosts.target_users %} {{ user.name }}{{ space() }} {% endfor %}
+
+# will genereate:
+#    root ro 
+
