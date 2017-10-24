@@ -158,15 +158,6 @@ fi
 # export https_proxy=https://$PROXY
 # export HTTPS_PROXY=https://$PROXY
 
-# glcoud
-gcloud_path="/usr/local/google-cloud-sdk"
-if [ -f $gcloud_path/completion.bash.inc ]; then
-  source $gcloud_path/completion.bash.inc
-fi
-if [ -f $gcloud_path/path.bash.inc ]; then
-  source $gcloud_path/path.bash.inc
-fi
-
 # make less more friendly for non-text input files, see lesspipe(1)
 if [ "$flavour" != "coreos" ]; then
   [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
@@ -345,7 +336,8 @@ if docker >/dev/null 2>&1; then
   docker-img-rm() { docker rmi $(docker images -q); }
   docker-vol-rm() { docker volume ls -qf dangling=true | xargs docker volume rm; }
   dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/"| sed "s/['|\']//g" | sort; }
-
+  
+  dvls() { ls -alh $(docker volume inspect $(docker volume ls | grep local | grep $1 | awk '{print $2}') | jq -r .[0].Mountpoint); }
   docker-vol-rm-all() {
     for i in $(docker volume ls | grep local | awk '{print $2}'); do
       docker volume rm $i;
