@@ -1601,6 +1601,8 @@ openssl s_client -connect <hostname>:<port>					# test connection
 openssl pkcs12 -in <user>-cert.p12 -out <user>-key.pem -nocerts -nodes	# extract key to .pem format
 openssl pkcs12 -in <user>-cert.p12 -out <user>-crt.pem -clcerts -nokeys	# extract cert to .pem format
 awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' cert.crt		 	# generate a one-line string from a certificate
+# import SSL cert into default Java keystore
+keytool -importcert -noprompt -file server.crt -keystore $JAVA_HOME/jre/lib/security/cacerts -deststorepass changeit -alias "anyAlias"
 
 
 # Packet, rpm handling, rpm dinge
