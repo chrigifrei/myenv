@@ -32,7 +32,7 @@ firebase deploy	-P apontis-website	# deploys website to the cloud
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # configure your local git client (~/.gitconfig)
 git config --global user.name "chrigifrei"
-git config --global user.email "chrigi.frei@gmail.com"
+git config --global user.email "chrigi...@...com"
 
 # create a master (bare) repo on the repo management system
 # now do locally
@@ -150,15 +150,15 @@ echo -e "new_password\nnew_password" | (passwd --stdin $USER)		# change $USER's 
 sosreport						# output .xc compressed archive in /tmp
 tar -xf <sosreport.tar.xc>		# decompress archive
 
-at dinge
+# at dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-scheduling a job:
-# at 09:00
+# scheduling a job:
+at 09:00
 at> nohup iostat -tkd xvda xvdb 30 480 > iostat_DOCT_2013-03-26.txt &
 at> Ctrl+D
 job 1 at 2013-03-26 09:00
-# at -l			lists planned jobs
-# at -d <jobNr>		deletes planned jobs
+at -l				# lists planned jobs
+at -d <jobNr>		# deletes planned jobs
 
 
 # grep dinge
@@ -277,42 +277,42 @@ svn info								# some infos on the project
 svn status -vu							# list files and its status
 
 
-veritas filesystem
+# veritas filesystem
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# vxprint [-ht] 		lists details on vx volumes
-# vxdisk -o alldgs list		lists all disks and its status
-# vxfsstat [-t <seconds>] [-c <count>] <mountpoint>
-# fstyp -v <dev>		prints VxFS version on HPUX
+vxprint [-ht] 										# lists details on vx volumes
+vxdisk -o alldgs list								# lists all disks and its status
+vxfsstat [-t <seconds>] [-c <count>] <mountpoint>
+fstyp -v <dev>										# prints VxFS version on HPUX
 
 
-tcpdump dinge, sniffing
+# tcpdump dinge, sniffing
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 tcpdump tcp port 23 -n -A		# sniff for all telnet traffic
 
 
-netstat dinge
+# netstat dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-netstat -a					all available netstat infos
-netstat -tu [-n]			established connections (tcp/udp), -n list portnumbers not servicenames (eg. 22 instead of ssh)
-netstat -p					established connections including sockets
-netstat -l					listening ports (all protocols)
-netstat -i [<sec>]			network traffic all NICs in packets, <sec> repeat all <sec> seconds (see ifconfig: MTU is packetsize in bytes)
-netstat -I=<NIC> [<sec>]	network traffic for <NIC> in packets, <sec> repeat all <sec> seconds (see ifconfig: MTU is packetsize in bytes)
-netstat -s					netstat summary
+netstat -a					# all available netstat infos
+netstat -tu [-n]			# established connections (tcp/udp), -n list portnumbers not servicenames (eg. 22 instead of ssh)
+netstat -p					# established connections including sockets
+netstat -l					# listening ports (all protocols)
+netstat -i [<sec>]			# network traffic all NICs in packets, <sec> repeat all <sec> seconds (see ifconfig: MTU is packetsize in bytes)
+netstat -I=<NIC> [<sec>]	# network traffic for <NIC> in packets, <sec> repeat all <sec> seconds (see ifconfig: MTU is packetsize in bytes)
+netstat -s					# netstat summary
 
-neu in RHEL 7:
-ss --all					ss = socket statistics
+# neu in RHEL 7:
+ss --all					# ss = socket statistics
 
 
-postfix, mail dinge
+# postfix, mail dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-sample configuration on OL6 (RHEL6) /etc/postfix/main.cf
-parameters to customize:
-	myhostname = sv5724.az-direct.local
-	mydomain = az-direct.local
+# sample configuration on OL6 (RHEL6) /etc/postfix/main.cf
+# parameters to customize:
+	myhostname = sv5724.domain.local
+	mydomain = domain.local
 	inet_interfaces = localhost
-	inet_protocols = ipv4			choose between: all, ipv4, ipv6
-	relayhost = vm5420.az-direct.local
+	inet_protocols = ipv4			# choose between: all, ipv4, ipv6
+	relayhost = vm5420.domain.local
 
 # postfix reload				reload configuration files
 
@@ -320,70 +320,70 @@ to get MX relay from DNS:
 # dig domain.ch MX
 
 
-sendmail
+# sendmail
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/etc/mail/sendmail.cf
-DSmailhub.trivadis.com			defines mail relay
+# /etc/mail/sendmail.cf
+DSmailhub.domain.com			# defines mail relay
 
-run a script on incoming mail:
-edit .forward file in receipients home:
+# run a script on incoming mail:
+# edit .forward file in receipients home:
 "|/absolute/path/to/script.sh"
-	Note: do not use user specific $Variables in .forward file
+	# Note: do not use user specific $Variables in .forward file
 
-error: user unknown
-solution:
-no “_” in usernames
-sendmail cannot handle special characters in usernames!
+# error: user unknown
+# solution:
+# no “_” in usernames
+# sendmail cannot handle special characters in usernames!
 
 
-console resolution and color depth
+# console resolution and color depth
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/boot/grub/menu.lst
+# /boot/grub/menu.lst
 ...
 kernel ... vga=<vgaCode>
 
-vgaCodes:
-   Colors ( depth) 640x480 800x600 1024x768 1280x1024 1600x1200
-   ---------------+-------+-------+--------+---------+---------
-   256    ( 8 bit)|  769     771     773      775       796
-   32,768 (15 bit)|  784     787     790      793       797
-   65,536 (16 bit)|  785     788     791      794       798
-   16.8M  (24 bit)|  786     789     792      795       799
+# vgaCodes:
+#    Colors ( depth) 640x480 800x600 1024x768 1280x1024 1600x1200
+#    ---------------+-------+-------+--------+---------+---------
+#    256    ( 8 bit)|  769     771     773      775       796
+#    32,768 (15 bit)|  784     787     790      793       797
+#    65,536 (16 bit)|  785     788     791      794       798
+#    16.8M  (24 bit)|  786     789     792      795       799
 
-change colors on console
+# change colors on console
 /etc/DIR_COLORS.xterm
 
-using this ISO color codes:
-	 30	for black foreground
-	 31	for red foreground
-	 32	for green foreground
-	 33	for yellow (or brown) foreground
-	 34	for blue foreground
-	 35	for purple foreground
-	 36	for cyan foreground
-	 37	for white (or gray) foreground
-	 40	for black background
-	 41	for red background
-	 42	for green background
-	 43	for yellow (or brown) background
-	 44	for blue background
-	 45	for purple background
-	 46	for cyan background
-	 47	for white (or gray) background
+# using this ISO color codes:
+# 	 30	for black foreground
+# 	 31	for red foreground
+# 	 32	for green foreground
+# 	 33	for yellow (or brown) foreground
+# 	 34	for blue foreground
+# 	 35	for purple foreground
+# 	 36	for cyan foreground
+# 	 37	for white (or gray) foreground
+# 	 40	for black background
+# 	 41	for red background
+# 	 42	for green background
+# 	 43	for yellow (or brown) background
+# 	 44	for blue background
+# 	 45	for purple background
+# 	 46	for cyan background
+# 	 47	for white (or gray) background
 
 
-cifs share mount
+# cifs share mount
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-package needed: cifs-utils
-# mount -t cifs //server-name/share-name /mnt/cifs -o username=shareuser,password=sharepassword,domain=<windowsDomain>
-# mount.cifs //192.168.101.100/sales /mnt/cifs -o username=shareuser,password=sharepassword,domain=<windowsDomain>
-if no password is given cifs mount will try using env variable PASSWD. if no password is provided at all cifs mount will prompt for it.
+# package needed: cifs-utils
+mount -t cifs //server-name/share-name /mnt/cifs -o username=shareuser,password=sharepassword,domain=<windowsDomain>
+mount.cifs //192.168.101.100/sales /mnt/cifs -o username=shareuser,password=sharepassword,domain=<windowsDomain>
+# if no password is given cifs mount will try using env variable PASSWD. if no password is provided at all cifs mount will prompt for it.
 
-/etc/fstab
+# /etc/fstab
 //192.168.101.100/sales /mnt/sales	cifs	username=shareuser,password=sharepassword,domain=<windowsDomain> 	0 0
 //192.168.101.100/sales /mnt/sales	cifs	username=shareuser,password=sharepassword,domain=<windowsDomain>,uid=xxx,gid=xxx 	0 0
 //192.168.101.100/sales /mnt/sales	cifs	username=shareuser,credentials=/home/user/.cifsCredentials,domain=<windowsDomain> 	0 0
-/home/user/.cifsCredentials
+# /home/user/.cifsCredentials
 password=<password>
 
 
@@ -1601,8 +1601,15 @@ openssl s_client -connect <hostname>:<port>					# test connection
 openssl pkcs12 -in <user>-cert.p12 -out <user>-key.pem -nocerts -nodes	# extract key to .pem format
 openssl pkcs12 -in <user>-cert.p12 -out <user>-crt.pem -clcerts -nokeys	# extract cert to .pem format
 awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' cert.crt		 	# generate a one-line string from a certificate
+
 # import SSL cert into default Java keystore
 keytool -importcert -noprompt -file server.crt -keystore $JAVA_HOME/jre/lib/security/cacerts -deststorepass changeit -alias "anyAlias"
+
+# create private key
+openssl genrsa -out $(hostname).key 4096
+
+# create CSR
+openssl req -new -key $(hostname).key -out $(hostname).csr -subj "/C=CH/ST=ZH/L=Zurich/CN=$(hostname -f)"
 
 
 # Packet, rpm handling, rpm dinge
@@ -1786,9 +1793,9 @@ Link,link up/down, Netzwerkkabel angeschlossen, Kabel angeschlossen
 	if link is down check /etc/sysconfig/network-scripts for a file called ifcfg-ethX
 
 
-ifcfg, network config files, ifcfg-eth, network dinge
+# ifcfg, network config files, ifcfg-eth, network dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/etc/sysconfig/network-scripts
+# /etc/sysconfig/network-scripts
 DEVICE=eth0
 IPADDR=208.164.186.1
 NETMASK=255.255.255.0
@@ -1799,13 +1806,13 @@ BOOTPROTO=none or dhcp
 USERCTL=no
 HWADDR=00:08:98:8d:77:34
 
-configure VLANs or vlan:
-ifcfg-eth0:
+# configure VLANs or vlan:
+# ifcfg-eth0:
 DEVICE=eth0
 ONBOOT=yes
 HWADDR=00:08:98:8d:77:34
 
-copy the ifcfg-eth0 and name the file as ifcfg-eth0.<vlanID>):
+# copy the ifcfg-eth0 and name the file as ifcfg-eth0.<vlanID>):
 DEVICE=eth0.<vlanID>
 VLAN=yes
 IPADDR=208.164.186.1
@@ -1815,35 +1822,35 @@ BOOTPROTO=none or dhcp
 USERCTL=no
 HWADDR=00:08:98:8d:77:34
 
-vlan tagged bonded interface:
-vlan tagging can either be done on bond dev or on both slave devs
-root@ora1:/etc/sysconfig/network-scripts # cat ifcfg-bond1
+# vlan tagged bonded interface:
+# vlan tagging can either be done on bond dev or on both slave devs
+# /etc/sysconfig/network-scripts/ifcfg-bond1
 DEVICE="bond1"
 ONBOOT="yes"
 
-root@ora1:/etc/sysconfig/network-scripts # cat ifcfg-bond1.11
+# /etc/sysconfig/network-scripts/ifcfg-bond1.11
 VLAN="yes"
 DEVICE="bond1.11"
 ONBOOT="yes"
 IPADDR="10.99.0.45"
 NETMASK="255.255.255.0"
 
-root@ora1:/etc/sysconfig/network-scripts # cat ifcfg-p1p1
+# /etc/sysconfig/network-scripts/ifcfg-p1p1
 DEVICE="p1p1"
 HWADDR="90:E2:BA:07:B0:B4"
 ONBOOT="no"
 MASTER="bond1"
 SLAVE="yes"
 
-root@ora1:/etc/sysconfig/network-scripts # cat ifcfg-p1p2
+# /etc/sysconfig/network-scripts/ifcfg-p1p2
 DEVICE="p1p2"
 #HWADDR="90:E2:BA:07:B0:B5"
 ONBOOT="no"
 MASTER="bond1"
 SLAVE="yes"
 
-configure bonding
-/etc/sysconfig/network-scripts/ifcfg-bond0
+# CONFIGURE BONDING
+# /etc/sysconfig/network-scripts/ifcfg-bond0
 DEVICE=bond0
 IPADDR=10.10.128.20
 NETMASK=255.255.255.0
@@ -1853,7 +1860,7 @@ BOOTPROTO=none
 TYPE=Ethernet
 ONBOOT=yes
 
-/etc/sysconfig/network-scripts/ifcfg-eth0
+# /etc/sysconfig/network-scripts/ifcfg-eth0
 DEVICE=eth0
 HWADDR=78:e3:b5:05:72:98
 MASTER=bond0
@@ -1862,7 +1869,7 @@ BOOTPROTO=none
 TYPE=Ethernet
 ONBOOT=no
 
-/etc/sysconfig/network-scripts/ifcfg-eth1
+# /etc/sysconfig/network-scripts/ifcfg-eth1
 DEVICE=eth1
 HWADDR=78:E3:B5:05:72:9C
 MASTER=bond0
@@ -1871,32 +1878,32 @@ BOOTPROTO=none
 TYPE=Ethernet
 ONBOOT=no
 
-/etc/modprobe.conf
+# /etc/modprobe.conf
 alias bond0 bonding
 options bond0 mode=1 miimon=100
 
-do not use
+# do not use
 	install ipv6 /bin/true
-in modprobe.conf. bonding needs ipv6 module! use instead:
+# in modprobe.conf. bonding needs ipv6 module! use instead:
 	options ipv6 disable=1
 
-get/change bonding settings at runtime:
-# cat /sys/class/net/bond0/bonding/mode
-# cat /proc/net/bonding/bond1
-# ifdown bond0
-# echo active-backup > /sys/class/net/bond0/bonding/mode
-# ifup bond0
+# get/change bonding settings at runtime:
+cat /sys/class/net/bond0/bonding/mode
+cat /proc/net/bonding/bond1
+ifdown bond0
+echo active-backup > /sys/class/net/bond0/bonding/mode
+ifup bond0
 
-bonding modes:
+# bonding modes:
 active-backup	1	failover mode
-balancd-rr	0	round robin load balanced
-xor		2	
-broadcast	3
+balancd-rr		0	round robin load balanced
+xor				2	
+broadcast		3
 ieee 802.3ad	4
-tlb		5
-alb		6
+tlb				5
+alb				6
 
-configure bridge
+# CONFIGURE BRIDGE
 DEVICE=eth0
 ONBOOT=yes
 BRIDGE=br0
@@ -1910,23 +1917,35 @@ IPADDR=10.10.21.70
 NETMASK=255.255.255.0
 DELAY=0
 
-# brctl show		display configured bridges
+brctl show		# display configured bridges
 
-network devices known by the system:
-# ll /sys/class/net/
+# network devices known by the system:
+ll /sys/class/net/
+
+# NetworkManager flapping issue after moving server (change subnet)
+# ERROR: Jan 10 10:10:01 myhost NetworkManager[834]: <error> [1515575401.9418] platform-linux: do-add-ip4-route[2: 10.0.xyz.0/24 100]: failure 101 (Network is unreachable)
+# SOLUTION:
+nmcli connection show ens192
+...
+ipv4.addresses:                         10.0.32.28/24
+ipv4.gateway:                           10.0.32.1
+ipv4.routes:                            { ip = 10.0.xyz.0/24, nh = 10.0.yz.252 } # <== wrong gateways
+
+nmcli connection modify ens192 -ipv4.routes '10.0.xyz.0/24 10.0.yz.252'
+nmcli connection up ens192
 
 
-virtual IP on eth0, virtual nic
+# virtual IP on eth0, virtual nic
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-copy /etc/sysconfig/network-scripts/ifcfg-eth0 to /etc/sysconfig/network-scripts/ifcfg-eth0:0
-edit the new file according yout needs
+# copy /etc/sysconfig/network-scripts/ifcfg-eth0 to /etc/sysconfig/network-scripts/ifcfg-eth0:0
+# edit the new file according yout needs
 
 
-ip forward
+# ip forward
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-persistenly, set in /etc/sysctl.conf:
+# persistenly, set in /etc/sysctl.conf:
 net.ipv4.ip_forward = 1
 
 
