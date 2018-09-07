@@ -19,7 +19,7 @@ services:
         args:
           - BUILD_NUMBER
           - RELEASE
-    image: collab.twint.ch:5000/twint.ch/elasticsearch${RELEASE}-${BUILD_NUMBER}
+    image: localhost:5000/apontis.ch/elasticsearch${RELEASE}-${BUILD_NUMBER}
     labels:
       - traefik.frontend.rule=PathPrefix:/
     volumes:
