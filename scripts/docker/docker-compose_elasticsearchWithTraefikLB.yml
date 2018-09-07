@@ -1,0 +1,48 @@
+version: "2"
+
+services:
+
+  reverse-proxy:
+    image: traefik:1.6.5
+    ports:
+      - 8080:8080
+      - 9200:9200
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # logging:
+    #   driver: syslog
+    command: --entryPoints='Name:http Address::9200' --api --docker
+
+  elasticsearch:
+    build: 
+        context: ./dockerbuild/elasticsearch
+        args:
+          - BUILD_NUMBER
+          - RELEASE
+    image: collab.twint.ch:5000/twint.ch/elasticsearch${RELEASE}-${BUILD_NUMBER}
+    labels:
+      - traefik.frontend.rule=PathPrefix:/
+    volumes:
+      - ./config:/elasticsearch/config
+    volumes_from:
+      - data
+    # logging:
+    #   driver: syslog
+    environment:
+      - ES_PATH_CONF=/elasticsearch/config
+    mem_limit: 4g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  data:
+    image: centos:7
+    volumes:
+      - data:/elasticsearch
+    # logging:
+    #   driver: syslog
+    command: "chown 1000:1000 /elasticsearch"
+
+volumes:
+  data:

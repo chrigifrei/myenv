@@ -5,6 +5,12 @@
 ############################################################################
 
 
+# dig dinge, nslookup
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# if zonetransfer is allowed:
+dig axfr localdomain.ch | grep -i waseliwas	# search dns zone localdomain.ch for waseliwas
+
+
 # jq dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 jq -r			# prints result without quotes
@@ -33,6 +39,13 @@ firebase deploy	-P apontis-website	# deploys website to the cloud
 # configure your local git client (~/.gitconfig)
 git config --global user.name "chrigifrei"
 git config --global user.email "chrigi...@...com"
+
+# save credentials on OSX
+$ git credential-osxkeychain store
+host=host.example.ch
+protocol=https
+username=chrigi
+password=****
 
 # create a master (bare) repo on the repo management system
 # now do locally
@@ -1109,10 +1122,10 @@ display current runlevel
 # who -r
 
 
-create ramdisk
+# create ramdisk
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-make sure mountpoint /mnt/ramdisk exists
-# mount -t tmpfs none /mnt/ramdisk -o size=5048m
+# make sure mountpoint /mnt/ramdisk exists
+mount -t tmpfs none /mnt/ramdisk -o size=5048m
 
 
 # sed dinge
@@ -1594,8 +1607,10 @@ wget --no-check-certificate		# ignore SSL errors
 
 # ssl dinge, certificates, cert dinge
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-openssl x509 -fingerprint -in /path/to/cert.pem -noout		# get the SHA-1 fingerprint of cert.pem
-openssl s_client -showcerts -connect <hostname>:<port>		# get the servers certificate
+openssl x509 -text -in /path/to/cert.pem						# Read the certifiate
+echo | openssl s_client -connect HOST:PORT 2>/dev/null | openssl x509 -text		# get the servers certificate full info
+echo | openssl s_client -connect HOST:PORT 2>&1 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > cert.pem	# save cert in .pem
+openssl x509 -text -noout -in <(echo | openssl s_client -connect HOST:PORT 2>&1 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p') # read cert
 openssl verify [-CAfile internal-ca.pem] /etc/pki/tls/certs/<hostname>.pem			# verify cert
 openssl s_client -connect <hostname>:<port>					# test connection
 openssl pkcs12 -in <user>-cert.p12 -out <user>-key.pem -nocerts -nodes	# extract key to .pem format
